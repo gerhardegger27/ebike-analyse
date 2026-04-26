@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>E-Bike Analyse · Focus VAM² SL</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Syne:wght@400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0d0f0e;
+    --bg2: #141614;
+    --bg3: #1a1d1a;
+    --bg4: #202420;
+    --border: rgba(255,255,255,0.07);
+    --border2: rgba(255,255,255,0.12);
+    --teal: #3de8a0;
+    --teal2: #1D9E75;
+    --teal3: rgba(61,232,160,0.08);
+    --amber: #f5c542;
+    --amber2: rgba(245,197,66,0.08);
+    --blue: #5aade8;
+    --red: #e85a5a;
+    --txt: #e8e6e0;
+    --txt2: #8a8880;
+    --txt3: #5a5856;
+    --font-head: 'Syne', sans-serif;
+    --font-mono: 'DM Mono', monospace;
+    --r: 12px;
+    --r2: 8px;
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--txt);
+    font-family: var(--font-mono);
+    min-height: 100vh;
+    padding: 0;
+  }
+
+  /* HEADER */
+  .header {
+    padding: 2rem 2rem 1.5rem;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 1rem;
+    flex-wrap: wrap;
+  }
+  .header-left h1 {
+    font-family: var(--font-head);
+    font-size: clamp(1.4rem, 4vw, 2.2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    color: var(--txt);
+    line-height: 1.1;
+  }
+  .header-left h1 span { color: var(--teal); }
+  .header-left p {
+    font-size: 0.75rem;
+    color: var(--txt3);
+    margin-top: 0.3rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .rider-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: 50px;
+    padding: 0.5rem 1rem 0.5rem 0.5rem;
+  }
+  .rider-avatar {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    background: var(--teal3);
+    border: 1px solid var(--teal2);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-head);
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--teal);
+  }
+  .rider-info { font-size: 0.72rem; }
+  .rider-info strong { display: block; color: var(--txt); font-weight: 500; font-size: 0.8rem; }
+  .rider-info span { color: var(--txt3); }
+
+  /* UPLOAD ZONE */
+  .upload-zone {
+    margin: 2.5rem 2rem;
+    border: 1.5px dashed var(--border2);
+    border-radius: var(--r);
+    padding: 3rem 2rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    position: relative;
+    background: var(--bg2);
+  }
+  .upload-zone:hover, .upload-zone.drag { border-color: var(--teal); background: var(--teal3); }
+  .upload-zone input { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; height: 100%; }
+  .upload-icon {
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    background: var(--teal3);
+    border: 1px solid var(--teal2);
+    display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 1rem;
+  }
+  .upload-icon svg { width: 22px; height: 22px; stroke: var(--teal); fill: none; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+  .upload-zone h2 { font-family: var(--font-head); font-size: 1.1rem; font-weight: 700; margin-bottom: 0.4rem; }
+  .upload-zone p { font-size: 0.75rem; color: var(--txt3); }
+  .upload-zone .file-types { margin-top: 1rem; display: flex; justify-content: center; gap: 0.5rem; }
+  .file-types span {
+    font-size: 0.65rem; letter-spacing: 0.08em; text-transform: uppercase;
+    padding: 2px 8px; border-radius: 4px;
+    background: var(--bg4); border: 1px solid var(--border); color: var(--txt2);
+  }
+
+  /* START BUTTON */
+  .btn-start {
+    display: none;
+    width: calc(100% - 4rem);
+    margin: 0 2rem 2rem;
+    padding: 1rem;
+    background: var(--teal);
+    color: #0d0f0e;
+    border: none;
+    border-radius: var(--r2);
+    font-family: var(--font-head);
+    font-size: 1rem;
+    font-weight: 700;
+    cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: all 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .btn-start:hover { background: #52f0b2; transform: translateY(-1px); }
+  .btn-start:active { transform: translateY(0); }
+  .btn-start.loading { pointer-events: none; }
+  .btn-start .btn-text { transition: opacity 0.2s; }
+  .btn-start.loading .btn-text { opacity: 0; }
+  .spinner {
+    position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    opacity: 0; transition: opacity 0.2s;
+  }
+  .btn-start.loading .spinner { opacity: 1; }
+  .spinner::after {
+    content: '';
+    width: 20px; height: 20px;
+    border: 2px solid rgba(0,0,0,0.3);
+    border-top-color: #0d0f0e;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* FILE INFO */
+  .file-info {
+    display: none;
+    margin: 0 2rem 1rem;
+    padding: 0.75rem 1rem;
+    background: var(--bg3);
+    border: 1px solid var(--border2);
+    border-radius: var(--r2);
+    font-size: 0.75rem;
+    color: var(--txt2);
+    display: none;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .file-info .fi-name { color: var(--teal); font-weight: 500; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  /* RESULTS */
+  #results { display: none; padding: 0 2rem 3rem; }
+
+  /* TOUR META */
+  .tour-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    padding: 1rem 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+  }
+  .tour-title { font-family: var(--font-head); font-size: 1.3rem; font-weight: 700; }
+  .tour-date { font-size: 0.72rem; color: var(--txt3); margin-top: 0.2rem; letter-spacing: 0.05em; }
+  .score-pill {
+    display: flex; align-items: center; gap: 0.6rem;
+    background: var(--teal3); border: 1px solid var(--teal2);
+    border-radius: 50px; padding: 0.4rem 1rem 0.4rem 0.5rem;
+  }
+  .score-circle {
+    width: 32px; height: 32px; border-radius: 50%;
+    background: var(--teal); color: #0d0f0e;
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--font-head); font-weight: 800; font-size: 0.8rem;
+  }
+  .score-label { font-size: 0.72rem; color: var(--teal); font-weight: 500; }
+
+  /* SECTION LABEL */
+  .sec-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--txt3);
+    margin: 1.5rem 0 0.75rem;
+  }
+
+  /* METRIC GRID */
+  .metric-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+    gap: 8px;
+    margin-bottom: 0.5rem;
+  }
+  .metric {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r2);
+    padding: 0.85rem 1rem;
+    transition: border-color 0.15s;
+  }
+  .metric:hover { border-color: var(--border2); }
+  .metric-label { font-size: 0.65rem; color: var(--txt3); letter-spacing: 0.05em; text-transform: uppercase; margin-bottom: 0.3rem; }
+  .metric-value { font-family: var(--font-head); font-size: 1.4rem; font-weight: 700; color: var(--txt); line-height: 1; }
+  .metric-unit { font-size: 0.72rem; color: var(--txt2); font-family: var(--font-mono); }
+  .metric.hi .metric-value { color: var(--teal); }
+  .metric.warn .metric-value { color: var(--amber); }
+  .metric.info .metric-value { color: var(--blue); }
+
+  /* CHART CARDS */
+  .chart-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 1.25rem;
+    margin-bottom: 10px;
+  }
+  .chart-card-title {
+    font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--txt3); margin-bottom: 1rem;
+  }
+  .chart-wrap { position: relative; width: 100%; }
+
+  /* ANALYSIS CARDS */
+  .analysis-card {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--r);
+    padding: 1.1rem 1.25rem;
+    margin-bottom: 8px;
+    transition: border-color 0.15s;
+  }
+  .analysis-card:hover { border-color: var(--border2); }
+  .a-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    font-weight: 500;
+    padding: 2px 8px;
+    border-radius: 4px;
+    margin-bottom: 0.5rem;
+  }
+  .a-badge.good { background: rgba(61,232,160,0.12); color: var(--teal); }
+  .a-badge.warn { background: rgba(245,197,66,0.12); color: var(--amber); }
+  .a-badge.info { background: rgba(90,173,232,0.1); color: var(--blue); }
+  .a-badge.red  { background: rgba(232,90,90,0.1);  color: var(--red); }
+  .analysis-text { font-size: 0.82rem; color: var(--txt2); line-height: 1.7; }
+  .analysis-text strong { color: var(--txt); font-weight: 500; }
+
+  /* PERF BARS */
+  .perf-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+  .perf-label { font-size: 0.72rem; color: var(--txt2); width: 120px; flex-shrink: 0; }
+  .perf-bar { flex: 1; height: 5px; background: var(--bg4); border-radius: 3px; overflow: hidden; }
+  .perf-fill { height: 100%; border-radius: 3px; background: var(--teal2); transition: width 1s ease; }
+  .perf-val { font-size: 0.72rem; font-weight: 500; color: var(--txt); width: 36px; text-align: right; }
+
+  /* LEGEND */
+  .legend { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 10px; }
+  .legend-item { display: flex; align-items: center; gap: 5px; font-size: 0.7rem; color: var(--txt3); }
+  .lsq { width: 10px; height: 10px; border-radius: 2px; }
+
+  /* DIVIDER */
+  hr { border: none; border-top: 1px solid var(--border); margin: 1.5rem 0; }
+
+  /* RESET */
+  .btn-reset {
+    background: transparent;
+    border: 1px solid var(--border2);
+    color: var(--txt2);
+    border-radius: var(--r2);
+    padding: 0.5rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    margin-bottom: 2rem;
+  }
+  .btn-reset:hover { border-color: var(--txt2); color: var(--txt); }
+
+  /* ERROR */
+  .error-box {
+    display: none;
+    margin: 0 2rem 1rem;
+    padding: 1rem;
+    background: rgba(232,90,90,0.08);
+    border: 1px solid rgba(232,90,90,0.3);
+    border-radius: var(--r2);
+    font-size: 0.8rem;
+    color: var(--red);
+  }
+
+  @media (max-width: 600px) {
+    .header, #results, .upload-zone, .btn-start, .file-info, .error-box { margin-left: 1rem; margin-right: 1rem; }
+    .upload-zone { padding: 2rem 1rem; }
+    .btn-start { width: calc(100% - 2rem); }
+    .metric-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-left">
+    <h1>E-Bike <span>Analyse</span></h1>
+    <p>Focus VAM² SL · Fazua Ride 60 · Garmin Edge Explore 2</p>
+  </div>
+  <div class="rider-badge">
+    <div class="rider-avatar">R</div>
+    <div class="rider-info">
+      <strong>Rider Profile</strong>
+      <span>56 J. · 62 kg · 164 cm</span>
+    </div>
+  </div>
+</div>
+
+<div class="upload-zone" id="uploadZone">
+  <input type="file" id="fileInput" accept=".gpx">
+  <div class="upload-icon">
+    <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+  </div>
+  <h2>GPX-Datei hochladen</h2>
+  <p>Ziehe deine Garmin-Aufzeichnung hierher oder klicke zum Auswählen</p>
+  <div class="file-types">
+    <span>.gpx</span>
+    <span>Garmin Connect Export</span>
+  </div>
+</div>
+
+<div class="file-info" id="fileInfo">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3de8a0" stroke-width="1.5" stroke-linecap="round"><path d="M13 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
+  <span class="fi-name" id="fileName">—</span>
+  <span id="fileSize" style="color:var(--txt3);font-size:0.7rem;flex-shrink:0"></span>
+</div>
+
+<div class="error-box" id="errorBox"></div>
+
+<button class="btn-start" id="btnStart">
+  <span class="btn-text">▶ Analyse starten</span>
+  <div class="spinner"></div>
+</button>
+
+<div id="results">
+  <div class="tour-meta">
+    <div>
+      <div class="tour-title" id="tourTitle">—</div>
+      <div class="tour-date" id="tourDate">—</div>
+    </div>
+    <div class="score-pill">
+      <div class="score-circle" id="scoreCircle">—</div>
+      <div class="score-label" id="scoreLabel">—</div>
+    </div>
+  </div>
+
+  <button class="btn-reset" id="btnReset">↩ Neue Tour laden</button>
+
+  <div class="sec-label">Strecke & Zeit</div>
+  <div class="metric-grid" id="metricsStrecke"></div>
+
+  <div class="sec-label">Geschwindigkeit</div>
+  <div class="metric-grid" id="metricsSpeed"></div>
+
+  <div class="sec-label">Höhe & Gelände</div>
+  <div class="metric-grid" id="metricsHoehe"></div>
+
+  <div class="sec-label">Kadenz & Wetter</div>
+  <div class="metric-grid" id="metricsKadenz"></div>
+
+  <hr>
+
+  <div class="sec-label">Höhenprofil & Geschwindigkeit</div>
+  <div class="legend">
+    <div class="legend-item"><div class="lsq" style="background:#3de8a0"></div>Höhe (m)</div>
+    <div class="legend-item"><div class="lsq" style="background:#5aade8;opacity:0.7"></div>Geschwindigkeit (km/h)</div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-wrap" style="height:200px">
+      <canvas id="elevChart" role="img" aria-label="Höhenprofil und Geschwindigkeitsverlauf">Höhenprofil und Geschwindigkeit der Tour.</canvas>
+    </div>
+  </div>
+
+  <div class="sec-label">Kadenz-Verlauf</div>
+  <div class="legend">
+    <div class="legend-item"><div class="lsq" style="background:#f5c542"></div>Kadenz (rpm)</div>
+    <div class="legend-item"><div class="lsq" style="background:rgba(61,232,160,0.2);border:1px solid #1D9E75"></div>Zielbereich 70–85 rpm</div>
+  </div>
+  <div class="chart-card">
+    <div class="chart-wrap" style="height:150px">
+      <canvas id="cadChart" role="img" aria-label="Kadenzverlauf über die Strecke">Kadenzverlauf der Tour.</canvas>
+    </div>
+  </div>
+
+  <div class="sec-label">Kadenz-Verteilung</div>
+  <div class="chart-card">
+    <div class="chart-wrap" style="height:120px">
+      <canvas id="cadDistChart" role="img" aria-label="Kadenzverteilung in Prozent">Kadenzverteilung.</canvas>
+    </div>
+  </div>
+
+  <hr>
+
+  <div class="sec-label">Körperanalyse · 56 J. · 62 kg · 164 cm · E-Bike</div>
+
+  <div class="chart-card" style="margin-bottom:10px">
+    <div class="chart-card-title">Leistungsprofil</div>
+    <div id="perfBars"></div>
+  </div>
+
+  <div id="analysisCards"></div>
+</div>
+
+<script>
+const RIDER = { age: 56, weight: 62, height: 164, maxHR: 164, bmi: 23.1 };
+
+let gpxFile = null;
+let charts = [];
+
+const uploadZone = document.getElementById('uploadZone');
+const fileInput  = document.getElementById('fileInput');
+const fileInfo   = document.getElementById('fileInfo');
+const fileName   = document.getElementById('fileName');
+const fileSize   = document.getElementById('fileSize');
+const btnStart   = document.getElementById('btnStart');
+const btnReset   = document.getElementById('btnReset');
+const results    = document.getElementById('results');
+const errorBox   = document.getElementById('errorBox');
+
+fileInput.addEventListener('change', e => onFile(e.target.files[0]));
+uploadZone.addEventListener('dragover', e => { e.preventDefault(); uploadZone.classList.add('drag'); });
+uploadZone.addEventListener('dragleave', () => uploadZone.classList.remove('drag'));
+uploadZone.addEventListener('drop', e => { e.preventDefault(); uploadZone.classList.remove('drag'); onFile(e.dataTransfer.files[0]); });
+btnStart.addEventListener('click', runAnalysis);
+btnReset.addEventListener('click', reset);
+
+function onFile(f) {
+  if (!f || !f.name.toLowerCase().endsWith('.gpx')) { showError('Bitte eine .gpx Datei auswählen.'); return; }
+  gpxFile = f;
+  hideError();
+  fileInfo.style.display = 'flex';
+  fileName.textContent = f.name;
+  fileSize.textContent = (f.size / 1024).toFixed(0) + ' KB';
+  btnStart.style.display = 'block';
+}
+
+function showError(msg) { errorBox.style.display = 'block'; errorBox.textContent = msg; }
+function hideError() { errorBox.style.display = 'none'; }
+
+function reset() {
+  gpxFile = null;
+  fileInput.value = '';
+  fileInfo.style.display = 'none';
+  btnStart.style.display = 'none';
+  results.style.display = 'none';
+  uploadZone.style.display = '';
+  charts.forEach(c => c.destroy());
+  charts = [];
+  hideError();
+}
+
+function runAnalysis() {
+  if (!gpxFile) return;
+  btnStart.classList.add('loading');
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = parseGPX(e.target.result);
+      renderDashboard(data);
+      btnStart.classList.remove('loading');
+      uploadZone.style.display = 'none';
+      fileInfo.style.display = 'none';
+      btnStart.style.display = 'none';
+      results.style.display = 'block';
+      results.scrollIntoView({ behavior: 'smooth' });
+    } catch(err) {
+      btnStart.classList.remove('loading');
+      showError('Fehler beim Lesen der GPX-Datei: ' + err.message);
+    }
+  };
+  reader.readAsText(gpxFile);
+}
+
+function haversine(lat1,lon1,lat2,lon2) {
+  const R=6371000, phi1=lat1*Math.PI/180, phi2=lat2*Math.PI/180;
+  const dphi=(lat2-lat1)*Math.PI/180, dlam=(lon2-lon1)*Math.PI/180;
+  const a=Math.sin(dphi/2)**2+Math.cos(phi1)*Math.cos(phi2)*Math.sin(dlam/2)**2;
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
+}
+
+function parseGPX(xml) {
+  const parser = new DOMParser();
+  const doc = parser.parseFromString(xml, 'text/xml');
+  const pts = doc.querySelectorAll('trkpt');
+  if (!pts.length) throw new Error('Keine Trackpunkte gefunden.');
+
+  const times=[], eles=[], lats=[], lons=[], temps=[], cads=[];
+  pts.forEach(p => {
+    lats.push(parseFloat(p.getAttribute('lat')));
+    lons.push(parseFloat(p.getAttribute('lon')));
+    const t = p.querySelector('time'); if(t) times.push(new Date(t.textContent));
+    const e = p.querySelector('ele');  if(e) eles.push(parseFloat(e.textContent));
+    const at = p.querySelector('atemp'); if(at) temps.push(parseFloat(at.textContent));
+    const c  = p.querySelector('cad');   if(c)  cads.push(parseInt(c.textContent));
+  });
+
+  const dists=[0];
+  for(let i=1;i<lats.length;i++) dists.push(haversine(lats[i-1],lons[i-1],lats[i],lons[i]));
+  const totalDist = dists.reduce((a,b)=>a+b,0)/1000;
+
+  const speeds=[];
+  for(let i=1;i<lats.length;i++){
+    const dt=times.length>i ? (times[i]-times[i-1])/1000 : 1;
+    speeds.push(dt>0 ? dists[i]/dt*3.6 : 0);
+  }
+
+  const duration = times.length>1 ? (times[times.length-1]-times[0])/1000 : 0;
+  const movingSecs = speeds.filter(s=>s>2).length;
+  const avgSpeed = totalDist/(duration/3600);
+  const movingAvg = movingSecs>0 ? totalDist/(movingSecs/3600) : 0;
+  const maxSpeed = Math.max(...speeds);
+
+  let uphill=0,downhill=0;
+  for(let i=1;i<eles.length;i++){
+    const d=eles[i]-eles[i-1];
+    if(d>0) uphill+=d; else downhill+=Math.abs(d);
+  }
+
+  const cadsActive = cads.filter(c=>c>0);
+  const avgCad = cadsActive.length ? cadsActive.reduce((a,b)=>a+b,0)/cadsActive.length : 0;
+  const maxCad = cadsActive.length ? Math.max(...cadsActive) : 0;
+  const avgTemp = temps.length ? temps.reduce((a,b)=>a+b,0)/temps.length : null;
+  const minTemp = temps.length ? Math.min(...temps) : null;
+  const maxTemp = temps.length ? Math.max(...temps) : null;
+
+  const cLow  = cadsActive.filter(c=>c<65).length;
+  const cMid  = cadsActive.filter(c=>c>=65&&c<=80).length;
+  const cHigh = cadsActive.filter(c=>c>80).length;
+  const cTot  = cadsActive.length||1;
+
+  const maxEle = eles.length ? Math.max(...eles) : 0;
+  const minEle = eles.length ? Math.min(...eles) : 0;
+
+  // Downsample to 80 points
+  function sample(arr, n=80) {
+    if(!arr.length) return [];
+    const step = Math.max(1, Math.floor(arr.length/n));
+    const out=[];
+    for(let i=0;i<arr.length;i+=step) out.push(arr[i]);
+    return out;
+  }
+
+  // Build cum dist arrays
+  const cumDists=[0];
+  for(let i=1;i<dists.length;i++) cumDists.push(cumDists[i-1]+dists[i]/1000);
+
+  const step = Math.max(1, Math.floor(lats.length/80));
+  const elevPts=[], speedPts=[], cadPts=[];
+  for(let i=0;i<lats.length;i+=step){
+    const d=cumDists[Math.min(i,cumDists.length-1)];
+    elevPts.push({ x: Math.round(d*10)/10, y: eles[i]||0 });
+    if(i>0&&i<=speeds.length) speedPts.push({ x: Math.round(d*10)/10, y: Math.min(Math.round(speeds[i-1]*10)/10,65) });
+    cadPts.push({ x: Math.round(d*10)/10, y: cads[i]||0 });
+  }
+
+  // Smooth speeds (window 5)
+  for(let i=0;i<speedPts.length;i++){
+    const s=speedPts.slice(Math.max(0,i-3),i+4).map(p=>p.y);
+    speedPts[i].y=Math.round(s.reduce((a,b)=>a+b,0)/s.length*10)/10;
+  }
+
+  const dateStr = times.length ? times[0].toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long',year:'numeric'}) : '—';
+  const timeStr = times.length ? times[0].toLocaleTimeString('de-AT',{hour:'2-digit',minute:'2-digit'}) + ' Uhr' : '';
+
+  // avg steigung uphill segment
+  const uphillKm = totalDist * (uphill/(uphill+downhill+1));
+  const avgGradeUp = uphillKm>0 ? uphill/(uphillKm*1000)*100 : 0;
+
+  return {
+    totalDist, duration, movingSecs, avgSpeed, movingAvg, maxSpeed,
+    uphill, downhill, maxEle, minEle, startEle: eles[0]||0, endEle: eles[eles.length-1]||0,
+    avgCad, maxCad, avgTemp, minTemp, maxTemp,
+    cLowPct: Math.round(cLow/cTot*100), cMidPct: Math.round(cMid/cTot*100), cHighPct: Math.round(cHigh/cTot*100),
+    avgGradeUp, elevPts, speedPts, cadPts,
+    dateStr, timeStr, fileName: gpxFile.name
+  };
+}
+
+function renderDashboard(d) {
+  const fmtT = s => `${Math.floor(s/3600)}:${String(Math.floor((s%3600)/60)).padStart(2,'0')}`;
+  const pauseMin = Math.round((d.duration - d.movingSecs)/60);
+
+  // Tour meta
+  document.getElementById('tourTitle').textContent = d.fileName.replace('.gpx','').replace(/_/g,' ');
+  document.getElementById('tourDate').textContent = d.dateStr + ' · ' + d.timeStr;
+
+  // Score
+  const score = calcScore(d);
+  document.getElementById('scoreCircle').textContent = score;
+  document.getElementById('scoreLabel').textContent = score>=80?'Sehr gut':score>=70?'Gut':score>=60?'Solide':'Einsteiger';
+
+  // Metrics
+  setMetrics('metricsStrecke',[
+    {l:'Distanz',v:d.totalDist.toFixed(1),u:'km',cls:'info'},
+    {l:'Gesamtzeit',v:fmtT(d.duration),u:'h'},
+    {l:'Bewegungszeit',v:fmtT(d.movingSecs),u:'h',cls:'hi'},
+    {l:'Pause',v:pauseMin,u:'min'},
+  ]);
+  setMetrics('metricsSpeed',[
+    {l:'Ø Gesamt',v:d.avgSpeed.toFixed(1),u:'km/h'},
+    {l:'Ø Bewegung',v:d.movingAvg.toFixed(1),u:'km/h',cls:'hi'},
+    {l:'Maximum',v:d.maxSpeed.toFixed(1),u:'km/h',cls:'warn'},
+  ]);
+  setMetrics('metricsHoehe',[
+    {l:'Aufstieg',v:Math.round(d.uphill),u:'m',cls:'hi'},
+    {l:'Abstieg',v:Math.round(d.downhill),u:'m',cls:'info'},
+    {l:'Max. Höhe',v:Math.round(d.maxEle),u:'m',cls:'warn'},
+    {l:'Min. Höhe',v:Math.round(d.minEle),u:'m'},
+    {l:'Start',v:Math.round(d.startEle),u:'m'},
+    {l:'Ziel',v:Math.round(d.endEle),u:'m'},
+  ]);
+  const kadMetrics = [
+    {l:'Ø Kadenz',v:Math.round(d.avgCad),u:'rpm',cls:'hi'},
+    {l:'Max. Kadenz',v:d.maxCad,u:'rpm'},
+  ];
+  if(d.avgTemp!==null) kadMetrics.push(
+    {l:'Ø Temperatur',v:d.avgTemp.toFixed(1),u:'°C'},
+    {l:'Min. Temp.',v:d.minTemp.toFixed(0),u:'°C'},
+    {l:'Max. Temp.',v:d.maxTemp.toFixed(0),u:'°C'},
+  );
+  setMetrics('metricsKadenz', kadMetrics);
+
+  // Charts
+  charts.forEach(c=>c.destroy()); charts=[];
+  renderElevChart(d);
+  renderCadChart(d);
+  renderCadDist(d);
+
+  // Perf bars
+  const perf = calcPerf(d);
+  document.getElementById('perfBars').innerHTML = perf.map(p=>`
+    <div class="perf-row">
+      <div class="perf-label">${p.label}</div>
+      <div class="perf-bar"><div class="perf-fill" style="width:${p.val}%;background:${p.color}"></div></div>
+      <div class="perf-val">${p.val}</div>
+    </div>`).join('');
+
+  // Analysis
+  document.getElementById('analysisCards').innerHTML = buildAnalysis(d).map(a=>`
+    <div class="analysis-card">
+      <div class="a-badge ${a.cls}">${a.badge}</div>
+      <div class="analysis-text"><strong>${a.title}</strong> ${a.text}</div>
+    </div>`).join('');
+}
+
+function setMetrics(id, items) {
+  document.getElementById(id).innerHTML = items.map(m=>`
+    <div class="metric ${m.cls||''}">
+      <div class="metric-label">${m.l}</div>
+      <div class="metric-value">${m.v} <span class="metric-unit">${m.u}</span></div>
+    </div>`).join('');
+}
+
+function renderElevChart(d) {
+  const labels = d.elevPts.map(p=>p.x.toFixed(1));
+  const eVals  = d.elevPts.map(p=>Math.round(p.y));
+  const sVals  = d.speedPts.map(p=>Math.round(p.y*10)/10);
+  const sLabels= d.speedPts.map(p=>p.x.toFixed(1));
+  const gridC='rgba(255,255,255,0.05)', txtC='#5a5856';
+  charts.push(new Chart(document.getElementById('elevChart'),{
+    type:'line',
+    data:{ labels, datasets:[
+      {label:'Höhe (m)',data:eVals,borderColor:'#3de8a0',backgroundColor:'rgba(61,232,160,0.08)',fill:true,tension:0.3,borderWidth:2,pointRadius:0,yAxisID:'y'},
+      {label:'Geschwindigkeit',data:sVals,borderColor:'#5aade8',backgroundColor:'transparent',tension:0.3,borderWidth:1.5,pointRadius:0,borderDash:[4,3],yAxisID:'y2'}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{title:i=>i[0].label+' km'}}},
+      scales:{
+        x:{ticks:{color:txtC,font:{size:10},maxTicksLimit:9,callback:v=>v+' km'},grid:{color:gridC},border:{display:false}},
+        y:{ticks:{color:'#3de8a0',font:{size:10},callback:v=>v+' m'},grid:{color:gridC},border:{display:false},min:Math.max(0,Math.round(Math.min(...eVals)-100))},
+        y2:{position:'right',ticks:{color:'#5aade8',font:{size:10},callback:v=>v+' km/h'},grid:{display:false},border:{display:false},min:0,max:70}
+      }}
+  }));
+}
+
+function renderCadChart(d) {
+  const labels = d.cadPts.map(p=>p.x.toFixed(1));
+  const vals   = d.cadPts.map(p=>Math.round(p.y));
+  const gridC='rgba(255,255,255,0.05)', txtC='#5a5856';
+  charts.push(new Chart(document.getElementById('cadChart'),{
+    type:'line',
+    data:{ labels, datasets:[
+      {label:'Ziel oben',data:labels.map(()=>85),borderColor:'transparent',backgroundColor:'rgba(61,232,160,0.1)',fill:'+1',pointRadius:0,borderWidth:0},
+      {label:'Ziel unten',data:labels.map(()=>70),borderColor:'transparent',backgroundColor:'transparent',fill:false,pointRadius:0,borderWidth:0},
+      {label:'Kadenz (rpm)',data:vals,borderColor:'#f5c542',backgroundColor:'transparent',tension:0.3,borderWidth:1.5,pointRadius:0}
+    ]},
+    options:{responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{filter:i=>i.datasetIndex===2,callbacks:{title:i=>i[0].label+' km',label:i=>Math.round(i.raw)+' rpm'}}},
+      scales:{
+        x:{ticks:{color:txtC,font:{size:10},maxTicksLimit:9,callback:v=>v+' km'},grid:{color:gridC},border:{display:false}},
+        y:{min:0,max:110,ticks:{color:txtC,font:{size:10},callback:v=>v+' rpm'},grid:{color:gridC},border:{display:false}}
+      }}
+  }));
+}
+
+function renderCadDist(d) {
+  const gridC='rgba(255,255,255,0.05)', txtC='#5a5856';
+  charts.push(new Chart(document.getElementById('cadDistChart'),{
+    type:'bar',
+    data:{
+      labels:['Unter 65 rpm','65–80 rpm','Über 80 rpm'],
+      datasets:[{data:[d.cLowPct,d.cMidPct,d.cHighPct],
+        backgroundColor:['#444441','#1D9E75','#378ADD'],borderWidth:0,borderRadius:4}]
+    },
+    options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{callbacks:{label:i=>Math.round(i.raw)+'%'}}},
+      scales:{
+        x:{ticks:{color:txtC,font:{size:10},callback:v=>v+'%'},grid:{color:gridC},border:{display:false},max:80},
+        y:{ticks:{color:txtC,font:{size:10}},grid:{display:false},border:{display:false}}
+      }}
+  }));
+}
+
+function calcScore(d) {
+  let s=60;
+  if(d.uphill>400) s+=8;
+  if(d.uphill>600) s+=4;
+  if(d.totalDist>15) s+=5;
+  if(d.movingSecs/d.duration>0.9) s+=5;
+  if(d.avgCad>=70&&d.avgCad<=85) s+=8;
+  else if(d.avgCad>60) s+=4;
+  if(d.avgSpeed>12) s+=5;
+  if(d.cMidPct>50) s+=5;
+  return Math.min(99, Math.round(s));
+}
+
+function calcPerf(d) {
+  const ausdauer = Math.min(100, Math.round(50 + d.uphill/15 + (d.movingSecs/d.duration)*20));
+  const tritt    = Math.min(100, Math.round(d.avgCad>=70&&d.avgCad<=85 ? 78 : d.avgCad>60 ? 65 : 50));
+  const berg     = Math.min(100, Math.round(50 + d.uphill/10));
+  const sicher   = Math.min(100, Math.round(70 + (d.maxSpeed>30 ? 15 : 5)));
+  const konst    = Math.min(100, Math.round(d.cMidPct + 10));
+  return [
+    {label:'Ausdauer', val:ausdauer, color:'#1D9E75'},
+    {label:'Tritteffizienz', val:tritt, color:'#378ADD'},
+    {label:'Bergkraft', val:berg, color:'#1D9E75'},
+    {label:'Fahrsicherheit', val:sicher, color:'#3de8a0'},
+    {label:'Kadenz-Konstanz', val:konst, color:'#f5c542'},
+  ];
+}
+
+function buildAnalysis(d) {
+  const cards=[];
+  // Aufstieg
+  if(d.uphill>300) cards.push({badge:'Sehr gut',cls:'good',title:'Bergausdauer:',
+    text:`${Math.round(d.uphill)} Hm bewältigt — für 56 Jahre und ${RIDER.weight} kg eine starke Leistung. Das niedrige Körpergewicht ist bergauf ein klarer Vorteil.`});
+  // Kadenz
+  if(d.avgCad>=70&&d.avgCad<=85) cards.push({badge:'Gut',cls:'good',title:'Kadenz im Zielbereich:',
+    text:`${Math.round(d.avgCad)} rpm Ø liegt im optimalen Fazua-Bereich (70–85 rpm). Der Motor unterstützt bei dieser Kadenz am effizientesten.`});
+  else if(d.avgCad>0) cards.push({badge:'Potenzial',cls:'warn',title:'Kadenz optimierbar:',
+    text:`${Math.round(d.avgCad)} rpm Ø — Zielbereich für Fazua und Gelenksschonung bei 56 Jahren ist 75–85 rpm. Etwas flüssiger treten schont Knie und verlängert die Akkulaufzeit.`});
+  // Abstieg
+  if(d.maxSpeed>35) cards.push({badge:'Stark',cls:'good',title:'Fahrsicherheit bergab:',
+    text:`Max. ${d.maxSpeed.toFixed(1)} km/h im Abstieg zeigt gutes Vertrauen in Bike und Gelände. Das Focus VAM² SL reagiert bei hohem Tempo neutral.`});
+  // Temp
+  if(d.avgTemp!==null) cards.push({badge:'Info',cls:'info',title:'Bedingungen:',
+    text:`Ø ${d.avgTemp.toFixed(1)} °C (${d.minTemp.toFixed(0)}–${d.maxTemp.toFixed(0)} °C) — optimale Bedingungen für Ausdauerleistung. Unter 10 °C sollte die Muskelaufwärmung länger dauern.`});
+  // HF
+  cards.push({badge:'Tipp',cls:'warn',title:'Herzfrequenz fehlt:',
+    text:`Mit dem bestellten Pulsmesser wird die nächste Analyse deutlich präziser — Herzfrequenzzonen, Belastungssteuerung und Erholungszeit werden dann sichtbar.`});
+  // BMI
+  cards.push({badge:'Info',cls:'info',title:'Körperprofil:',
+    text:`BMI ${RIDER.bmi} (optimal). Geschätzter Kalorienverbrauch diese Tour: ${Math.round(d.duration/60*9)} kcal. Für Touren über 90 min einen kleinen Snack ab km ${Math.round(d.totalDist*0.55)} einplanen.`});
+  return cards;
+}
+</script>
+</body>
+</html>
