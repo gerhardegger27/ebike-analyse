@@ -541,14 +541,12 @@ let charts = [];
 let RIDER = { name:'', bike:'', year:1970, gender:'m', weight:62, height:164 };
 
 function loadProfile() {
-  const saved = localStorage.getItem('ebike_profile');
+  let saved = null;
+  try { saved = sessionStorage.getItem('ebike_profile') || localStorage.getItem('ebike_profile'); } catch(e) {}
   if (saved) {
-    RIDER = JSON.parse(saved);
-    document.getElementById('profileOverlay').style.display = 'none';
-    updateHeader();
-  } else {
-    document.getElementById('profileOverlay').style.display = 'flex';
+    try { RIDER = JSON.parse(saved); document.getElementById('profileOverlay').style.display = 'none'; updateHeader(); return; } catch(e) {}
   }
+  document.getElementById('profileOverlay').style.display = 'flex';
 }
 
 function saveProfile() {
@@ -563,18 +561,19 @@ function saveProfile() {
     alert('Bitte alle Felder ausfüllen.'); return;
   }
   RIDER = { name, bike: bike || 'E-Bike', year, gender, weight, height };
-  localStorage.setItem('ebike_profile', JSON.stringify(RIDER));
+  try { localStorage.setItem('ebike_profile', JSON.stringify(RIDER)); } catch(e) {}
+  try { sessionStorage.setItem('ebike_profile', JSON.stringify(RIDER)); } catch(e) {}
   document.getElementById('profileOverlay').style.display = 'none';
   updateHeader();
 }
 
 function editProfile() {
-  document.getElementById('pName').value   = RIDER.name;
-  document.getElementById('pBike').value   = RIDER.bike;
-  document.getElementById('pYear').value   = RIDER.year;
-  document.getElementById('pGender').value = RIDER.gender;
-  document.getElementById('pWeight').value = RIDER.weight;
-  document.getElementById('pHeight').value = RIDER.height;
+  document.getElementById('pName').value   = RIDER.name   || '';
+  document.getElementById('pBike').value   = RIDER.bike   || '';
+  document.getElementById('pYear').value   = RIDER.year   || '';
+  document.getElementById('pGender').value = RIDER.gender || 'm';
+  document.getElementById('pWeight').value = RIDER.weight || '';
+  document.getElementById('pHeight').value = RIDER.height || '';
   document.getElementById('profileOverlay').style.display = 'flex';
 }
 
