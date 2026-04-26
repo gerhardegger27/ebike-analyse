@@ -320,6 +320,54 @@
     color: var(--red);
   }
 
+  /* PROFILE SETUP */
+  .profile-overlay {
+    position: fixed; inset: 0; background: var(--bg);
+    z-index: 100; display: flex; align-items: center; justify-content: center;
+    padding: 1.5rem;
+  }
+  .profile-box {
+    background: var(--bg2); border: 1px solid var(--border2);
+    border-radius: var(--r); padding: 2rem; width: 100%; max-width: 420px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.08);
+  }
+  .profile-box h2 {
+    font-family: var(--font-head); font-size: 1.5rem; font-weight: 800;
+    margin-bottom: 0.3rem; color: var(--txt);
+  }
+  .profile-box h2 span { color: var(--teal2); }
+  .profile-box p { font-size: 0.78rem; color: var(--txt3); margin-bottom: 1.5rem; }
+  .profile-field { margin-bottom: 1rem; }
+  .profile-field label {
+    display: block; font-size: 0.7rem; letter-spacing: 0.06em;
+    text-transform: uppercase; color: var(--txt3); margin-bottom: 0.4rem;
+  }
+  .profile-field input, .profile-field select {
+    width: 100%; padding: 0.7rem 0.9rem;
+    background: var(--bg3); border: 1px solid var(--border2);
+    border-radius: var(--r2); font-family: var(--font-mono);
+    font-size: 0.9rem; color: var(--txt); outline: none;
+    transition: border-color 0.15s;
+  }
+  .profile-field input:focus, .profile-field select:focus { border-color: var(--teal2); }
+  .profile-field .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .btn-profile {
+    width: 100%; padding: 0.85rem;
+    background: var(--teal2); color: #fff;
+    border: none; border-radius: var(--r2);
+    font-family: var(--font-head); font-size: 1rem; font-weight: 700;
+    cursor: pointer; margin-top: 0.5rem; transition: background 0.15s;
+  }
+  .btn-profile:hover { background: #0d8a5a; }
+  .profile-edit-btn {
+    background: transparent; border: 1px solid var(--border2);
+    border-radius: 50px; padding: 0.3rem 0.75rem;
+    font-family: var(--font-mono); font-size: 0.7rem;
+    color: var(--txt3); cursor: pointer; transition: all 0.15s;
+    margin-left: 0.5rem; vertical-align: middle;
+  }
+  .profile-edit-btn:hover { border-color: var(--teal2); color: var(--teal2); }
+
   @media (max-width: 600px) {
     .header, #results, .upload-zone, .btn-start, .file-info, .error-box { margin-left: 1rem; margin-right: 1rem; }
     .upload-zone { padding: 2rem 1rem; }
@@ -330,17 +378,61 @@
 </head>
 <body>
 
+<div class="profile-overlay" id="profileOverlay">
+  <div class="profile-box">
+    <h2>E-Bike <span>Analyse</span></h2>
+    <p>Gib dein persönliches Profil ein — wird lokal gespeichert und für die Körperanalyse verwendet.</p>
+    <div class="profile-field">
+      <label>Dein Name</label>
+      <input type="text" id="pName" placeholder="z.B. Gerhard" maxlength="30">
+    </div>
+    <div class="profile-field">
+      <label>E-Bike Modell</label>
+      <input type="text" id="pBike" placeholder="z.B. Focus VAM² SL" maxlength="40">
+    </div>
+    <div class="profile-field">
+      <div class="field-row">
+        <div>
+          <label>Geburtsjahr</label>
+          <input type="number" id="pYear" placeholder="z.B. 1970" min="1940" max="2005">
+        </div>
+        <div>
+          <label>Geschlecht</label>
+          <select id="pGender">
+            <option value="m">Männlich</option>
+            <option value="f">Weiblich</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="profile-field">
+      <div class="field-row">
+        <div>
+          <label>Gewicht (kg)</label>
+          <input type="number" id="pWeight" placeholder="z.B. 62" min="40" max="150">
+        </div>
+        <div>
+          <label>Größe (cm)</label>
+          <input type="number" id="pHeight" placeholder="z.B. 164" min="140" max="220">
+        </div>
+      </div>
+    </div>
+    <button class="btn-profile" onclick="saveProfile()">✓ Profil speichern & starten</button>
+  </div>
+</div>
+
 <div class="header">
   <div class="header-left">
     <h1>E-Bike <span>Analyse</span></h1>
-    <p>Focus VAM² SL · Fazua Ride 60 · Garmin Edge Explore 2</p>
+    <p id="headerBike">—</p>
   </div>
   <div class="rider-badge">
-    <div class="rider-avatar">R</div>
+    <div class="rider-avatar" id="riderAvatar">?</div>
     <div class="rider-info">
-      <strong>Rider Profile</strong>
-      <span>56 J. · 62 kg · 164 cm</span>
+      <strong id="riderName">—</strong>
+      <span id="riderStats">—</span>
     </div>
+    <button class="profile-edit-btn" onclick="editProfile()" title="Profil bearbeiten">✏️</button>
   </div>
 </div>
 
@@ -445,7 +537,64 @@ const RIDER = { age: 56, weight: 62, height: 164, maxHR: 164, bmi: 23.1 };
 let gpxFile = null;
 let charts = [];
 
-const uploadZone = document.getElementById('uploadZone');
+// ── PROFIL ──────────────────────────────────────────────
+let RIDER = { name:'', bike:'', year:1970, gender:'m', weight:62, height:164 };
+
+function loadProfile() {
+  const saved = localStorage.getItem('ebike_profile');
+  if (saved) {
+    RIDER = JSON.parse(saved);
+    document.getElementById('profileOverlay').style.display = 'none';
+    updateHeader();
+  } else {
+    document.getElementById('profileOverlay').style.display = 'flex';
+  }
+}
+
+function saveProfile() {
+  const name   = document.getElementById('pName').value.trim();
+  const bike   = document.getElementById('pBike').value.trim();
+  const year   = parseInt(document.getElementById('pYear').value);
+  const gender = document.getElementById('pGender').value;
+  const weight = parseFloat(document.getElementById('pWeight').value);
+  const height = parseFloat(document.getElementById('pHeight').value);
+
+  if (!name || !year || !weight || !height) {
+    alert('Bitte alle Felder ausfüllen.'); return;
+  }
+  RIDER = { name, bike: bike || 'E-Bike', year, gender, weight, height };
+  localStorage.setItem('ebike_profile', JSON.stringify(RIDER));
+  document.getElementById('profileOverlay').style.display = 'none';
+  updateHeader();
+}
+
+function editProfile() {
+  document.getElementById('pName').value   = RIDER.name;
+  document.getElementById('pBike').value   = RIDER.bike;
+  document.getElementById('pYear').value   = RIDER.year;
+  document.getElementById('pGender').value = RIDER.gender;
+  document.getElementById('pWeight').value = RIDER.weight;
+  document.getElementById('pHeight').value = RIDER.height;
+  document.getElementById('profileOverlay').style.display = 'flex';
+}
+
+function updateHeader() {
+  const age = new Date().getFullYear() - RIDER.year;
+  const bmi = (RIDER.weight / ((RIDER.height/100)**2)).toFixed(1);
+  document.getElementById('riderAvatar').textContent = RIDER.name.charAt(0).toUpperCase();
+  document.getElementById('riderName').textContent   = RIDER.name;
+  document.getElementById('riderStats').textContent  = `${age} J. · ${RIDER.weight} kg · ${RIDER.height} cm`;
+  document.getElementById('headerBike').textContent  = RIDER.bike;
+}
+
+function getRiderAge()    { return new Date().getFullYear() - RIDER.year; }
+function getRiderBMI()    { return (RIDER.weight / ((RIDER.height/100)**2)).toFixed(1); }
+function getRiderMaxHR()  { return 220 - getRiderAge(); }
+
+// ── INIT ─────────────────────────────────────────────────
+loadProfile();
+
+
 const fileInput  = document.getElementById('fileInput');
 const fileInfo   = document.getElementById('fileInfo');
 const fileName   = document.getElementById('fileName');
@@ -778,27 +927,26 @@ function calcPerf(d) {
 }
 
 function buildAnalysis(d) {
+  const age   = getRiderAge();
+  const bmi   = getRiderBMI();
+  const maxHR = getRiderMaxHR();
+  const kcal  = Math.round(d.duration/60*9);
+  const snackKm = Math.round(d.totalDist*0.55);
   const cards=[];
-  // Aufstieg
   if(d.uphill>300) cards.push({badge:'Sehr gut',cls:'good',title:'Bergausdauer:',
-    text:`${Math.round(d.uphill)} Hm bewältigt — für 56 Jahre und ${RIDER.weight} kg eine starke Leistung. Das niedrige Körpergewicht ist bergauf ein klarer Vorteil.`});
-  // Kadenz
+    text:`${Math.round(d.uphill)} Hm bewältigt — für ${age} Jahre und ${RIDER.weight} kg eine starke Leistung. Leichteres Körpergewicht ist bergauf ein klarer Vorteil.`});
   if(d.avgCad>=70&&d.avgCad<=85) cards.push({badge:'Gut',cls:'good',title:'Kadenz im Zielbereich:',
-    text:`${Math.round(d.avgCad)} rpm Ø liegt im optimalen Fazua-Bereich (70–85 rpm). Der Motor unterstützt bei dieser Kadenz am effizientesten.`});
+    text:`${Math.round(d.avgCad)} rpm Ø liegt im optimalen Bereich (70–85 rpm). Der Motor unterstützt bei dieser Kadenz am effizientesten.`});
   else if(d.avgCad>0) cards.push({badge:'Potenzial',cls:'warn',title:'Kadenz optimierbar:',
-    text:`${Math.round(d.avgCad)} rpm Ø — Zielbereich für Fazua und Gelenksschonung bei 56 Jahren ist 75–85 rpm. Etwas flüssiger treten schont Knie und verlängert die Akkulaufzeit.`});
-  // Abstieg
+    text:`${Math.round(d.avgCad)} rpm Ø — Zielbereich für E-Bike und Gelenksschonung bei ${age} Jahren ist 75–85 rpm. Etwas flüssiger treten schont Knie und verlängert die Akkulaufzeit.`});
   if(d.maxSpeed>35) cards.push({badge:'Stark',cls:'good',title:'Fahrsicherheit bergab:',
-    text:`Max. ${d.maxSpeed.toFixed(1)} km/h im Abstieg zeigt gutes Vertrauen in Bike und Gelände. Das Focus VAM² SL reagiert bei hohem Tempo neutral.`});
-  // Temp
+    text:`Max. ${d.maxSpeed.toFixed(1)} km/h im Abstieg zeigt gutes Vertrauen in Bike und Gelände.`});
   if(d.avgTemp!==null) cards.push({badge:'Info',cls:'info',title:'Bedingungen:',
-    text:`Ø ${d.avgTemp.toFixed(1)} °C (${d.minTemp.toFixed(0)}–${d.maxTemp.toFixed(0)} °C) — optimale Bedingungen für Ausdauerleistung. Unter 10 °C sollte die Muskelaufwärmung länger dauern.`});
-  // HF
-  cards.push({badge:'Tipp',cls:'warn',title:'Herzfrequenz fehlt:',
-    text:`Mit dem bestellten Pulsmesser wird die nächste Analyse deutlich präziser — Herzfrequenzzonen, Belastungssteuerung und Erholungszeit werden dann sichtbar.`});
-  // BMI
+    text:`Ø ${d.avgTemp.toFixed(1)} °C (${d.minTemp.toFixed(0)}–${d.maxTemp.toFixed(0)} °C). Unter 10 °C Muskelaufwärmung verlängern.`});
+  cards.push({badge:'Tipp',cls:'warn',title:'Herzfrequenz:',
+    text:`Theoretische Max-HF von ${RIDER.name}: ${maxHR} bpm. Mit Pulsmesser werden Herzfrequenzzonen und Belastungssteuerung sichtbar.`});
   cards.push({badge:'Info',cls:'info',title:'Körperprofil:',
-    text:`BMI ${RIDER.bmi} (optimal). Geschätzter Kalorienverbrauch diese Tour: ${Math.round(d.duration/60*9)} kcal. Für Touren über 90 min einen kleinen Snack ab km ${Math.round(d.totalDist*0.55)} einplanen.`});
+    text:`BMI ${bmi} — optimal. Geschätzter Kalorienverbrauch: ${kcal} kcal. Für Touren über 90 min einen Snack ab km ${snackKm} einplanen.`});
   return cards;
 }
 </script>
