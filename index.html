@@ -236,6 +236,8 @@
   .metric.hi .metric-value { color: var(--teal); }
   .metric.warn .metric-value { color: var(--amber); }
   .metric.info .metric-value { color: var(--blue); }
+  .metric.red .metric-value { color: #A32D2D; }
+  .a-badge.red { background: #FCEBEB; color: #791F1F; }
 
   /* CHART CARDS */
   .chart-card {
@@ -274,8 +276,7 @@
   .a-badge.good { background: rgba(29,158,117,0.1); color: var(--teal); }
   .a-badge.warn { background: rgba(181,124,0,0.1); color: var(--amber); }
   .a-badge.info { background: rgba(26,111,186,0.1); color: var(--blue); }
-  .metric.red .metric-value { color: #A32D2D; }
-  .a-badge.red { background: #FCEBEB; color: #791F1F; }
+  .a-badge.red  { background: rgba(232,90,90,0.1);  color: var(--red); }
   .analysis-text { font-size: 0.82rem; color: var(--txt2); line-height: 1.7; }
   .analysis-text strong { color: var(--txt); font-weight: 500; }
 
@@ -489,22 +490,31 @@
   <div class="sec-label">Kadenz & Wetter</div>
   <div class="metric-grid" id="metricsKadenz"></div>
 
-  <div id="hrSectionLabel" style="display:none"><div class="sec-label">Herzfrequenz ❤️</div></div>
-  <div class="metric-grid" id="metricsHR"></div>
-
-  <div id="hrZoneSection" style="display:none">
-    <div class="sec-label">HF-Zonen Verteilung</div>
+  <div id="hrSection" style="display:none">
+    <div class="sec-label">Herzfrequenz ❤️</div>
+    <div class="metric-grid" id="metricsHR"></div>
+    <div class="sec-label" style="margin-top:1rem">HF-Zonen</div>
     <div class="legend">
-      <div class="legend-item"><div class="lsq" style="background:#B5D4F4"></div>Z1 Regeneration &lt;60%</div>
-      <div class="legend-item"><div class="lsq" style="background:#1D9E75"></div>Z2 Fettverbrennung 60–70%</div>
-      <div class="legend-item"><div class="lsq" style="background:#b57c00"></div>Z3 Aerob 70–80%</div>
-      <div class="legend-item"><div class="lsq" style="background:#E24B4A"></div>Z4 Anaerob 80–90%</div>
-      <div class="legend-item"><div class="lsq" style="background:#791F1F"></div>Z5 Maximal &gt;90%</div>
+      <div class="legend-item"><div class="lsq" style="background:#B5D4F4"></div>Z1 &lt;60%</div>
+      <div class="legend-item"><div class="lsq" style="background:#1D9E75"></div>Z2 60–70%</div>
+      <div class="legend-item"><div class="lsq" style="background:#b57c00"></div>Z3 70–80%</div>
+      <div class="legend-item"><div class="lsq" style="background:#E24B4A"></div>Z4 80–90%</div>
+      <div class="legend-item"><div class="lsq" style="background:#791F1F"></div>Z5 &gt;90%</div>
     </div>
     <div id="zoneBar" style="display:flex;height:32px;border-radius:8px;overflow:hidden;margin-bottom:12px;"></div>
     <div class="chart-card" style="margin-bottom:10px">
       <div class="chart-wrap" style="height:130px">
-        <canvas id="hrZoneChart" role="img" aria-label="HF-Zonen Verteilung in Prozent">HF-Zonen Verteilung.</canvas>
+        <canvas id="hrZoneChart" role="img" aria-label="HF-Zonen Verteilung">HF-Zonen Verteilung.</canvas>
+      </div>
+    </div>
+    <div class="sec-label">Herzfrequenz & Höhe</div>
+    <div class="legend">
+      <div class="legend-item"><div class="lsq" style="background:#1D9E75"></div>Höhe (m)</div>
+      <div class="legend-item"><div class="lsq" style="background:#E24B4A"></div>HF (bpm)</div>
+    </div>
+    <div class="chart-card" style="margin-bottom:10px">
+      <div class="chart-wrap" style="height:180px">
+        <canvas id="hrChart" role="img" aria-label="Herzfrequenz und Höhenprofil">HF und Höhe.</canvas>
       </div>
     </div>
   </div>
@@ -514,7 +524,7 @@
   <div class="sec-label">Höhenprofil & Geschwindigkeit</div>
   <div class="legend">
     <div class="legend-item"><div class="lsq" style="background:#1D9E75"></div>Höhe (m)</div>
-    <div class="legend-item"><div class="lsq" style="background:#1a6fba;opacity:0.8"></div>Geschwindigkeit (km/h)</div>
+    <div class="legend-item"><div class="lsq" style="background:#1a6fba;opacity:0.7"></div>Geschwindigkeit (km/h)</div>
   </div>
   <div class="chart-card">
     <div class="chart-wrap" style="height:200px">
@@ -522,23 +532,10 @@
     </div>
   </div>
 
-  <div id="hrChartSection" style="display:none">
-    <div class="sec-label">Herzfrequenz & Höhenprofil</div>
-    <div class="legend">
-      <div class="legend-item"><div class="lsq" style="background:#1D9E75"></div>Höhe (m)</div>
-      <div class="legend-item"><div class="lsq" style="background:#E24B4A"></div>Herzfrequenz (bpm)</div>
-    </div>
-    <div class="chart-card">
-      <div class="chart-wrap" style="height:200px">
-        <canvas id="hrChart" role="img" aria-label="Herzfrequenz und Höhenprofil über die Strecke">Herzfrequenz und Höhenprofil.</canvas>
-      </div>
-    </div>
-  </div>
-
   <div class="sec-label">Kadenz-Verlauf</div>
   <div class="legend">
     <div class="legend-item"><div class="lsq" style="background:#b57c00"></div>Kadenz (rpm)</div>
-    <div class="legend-item"><div class="lsq" style="background:rgba(29,158,117,0.15);border:1px solid #1D9E75"></div>Zielbereich 70–85 rpm</div>
+    <div class="legend-item"><div class="lsq" style="background:rgba(61,232,160,0.2);border:1px solid #1D9E75"></div>Zielbereich 70–85 rpm</div>
   </div>
   <div class="chart-card">
     <div class="chart-wrap" style="height:150px">
@@ -555,7 +552,7 @@
 
   <hr>
 
-  <div class="sec-label" id="analysisTitle">Körperanalyse</div>
+  <div class="sec-label" id="analysisTitle">Körperanalyse · E-Bike</div>
 
   <div class="chart-card" style="margin-bottom:10px">
     <div class="chart-card-title">Leistungsprofil</div>
@@ -626,7 +623,6 @@ function getRiderMaxHR()  { return 220 - getRiderAge(); }
 loadProfile();
 
 
-const uploadZone = document.getElementById('uploadZone');
 const fileInput  = document.getElementById('fileInput');
 const fileInfo   = document.getElementById('fileInfo');
 const fileName   = document.getElementById('fileName');
@@ -743,29 +739,6 @@ function parseGPX(xml) {
   const minTemp = temps.length ? Math.min(...temps) : null;
   const maxTemp = temps.length ? Math.max(...temps) : null;
 
-  // HR
-  const hasHR = hrs.length > 10;
-  const avgHR  = hasHR ? Math.round(hrs.reduce((a,b)=>a+b,0)/hrs.length) : null;
-  const maxHRa = hasHR ? Math.max(...hrs) : null;
-  const minHRa = hasHR ? Math.min(...hrs) : null;
-  const mhr    = 220 - getRiderAge();
-  const z1 = hasHR ? hrs.filter(h=>h<mhr*0.60).length : 0;
-  const z2 = hasHR ? hrs.filter(h=>h>=mhr*0.60&&h<mhr*0.70).length : 0;
-  const z3 = hasHR ? hrs.filter(h=>h>=mhr*0.70&&h<mhr*0.80).length : 0;
-  const z4 = hasHR ? hrs.filter(h=>h>=mhr*0.80&&h<mhr*0.90).length : 0;
-  const z5 = hasHR ? hrs.filter(h=>h>=mhr*0.90).length : 0;
-  const htot = hrs.length||1;
-  const hrZones = [
-    {label:'Z1 Regeneration',pct:Math.round(z1/htot*100),color:'#B5D4F4',bpm:`< ${Math.round(mhr*0.60)} bpm`},
-    {label:'Z2 Fettverbrennung',pct:Math.round(z2/htot*100),color:'#1D9E75',bpm:`${Math.round(mhr*0.60)}–${Math.round(mhr*0.70)} bpm`},
-    {label:'Z3 Aerob',pct:Math.round(z3/htot*100),color:'#b57c00',bpm:`${Math.round(mhr*0.70)}–${Math.round(mhr*0.80)} bpm`},
-    {label:'Z4 Anaerob',pct:Math.round(z4/htot*100),color:'#E24B4A',bpm:`${Math.round(mhr*0.80)}–${Math.round(mhr*0.90)} bpm`},
-    {label:'Z5 Maximal',pct:Math.round(z5/htot*100),color:'#791F1F',bpm:`> ${Math.round(mhr*0.90)} bpm`},
-  ];
-  const dominantZone = hrZones.reduce((a,b)=>b.pct>a.pct?b:a, hrZones[0]);
-  const recoveryHours = hasHR ? (dominantZone.label.includes('Z5')||dominantZone.label.includes('Z4') ? 72 : dominantZone.label.includes('Z3') ? 48 : 24) : null;
-  const kcalHR = hasHR ? Math.round((0.6309*avgHR + 0.1988*RIDER.weight + 0.2017*getRiderAge() - 55.0969) * (duration/60) / 4.184) : Math.round(duration/60*9);
-
   const cLow  = cadsActive.filter(c=>c<65).length;
   const cMid  = cadsActive.filter(c=>c>=65&&c<=80).length;
   const cHigh = cadsActive.filter(c=>c>80).length;
@@ -773,6 +746,15 @@ function parseGPX(xml) {
 
   const maxEle = eles.length ? Math.max(...eles) : 0;
   const minEle = eles.length ? Math.min(...eles) : 0;
+
+  // Downsample to 80 points
+  function sample(arr, n=80) {
+    if(!arr.length) return [];
+    const step = Math.max(1, Math.floor(arr.length/n));
+    const out=[];
+    for(let i=0;i<arr.length;i+=step) out.push(arr[i]);
+    return out;
+  }
 
   // Build cum dist arrays
   const cumDists=[0];
@@ -800,6 +782,30 @@ function parseGPX(xml) {
   // avg steigung uphill segment
   const uphillKm = totalDist * (uphill/(uphill+downhill+1));
   const avgGradeUp = uphillKm>0 ? uphill/(uphillKm*1000)*100 : 0;
+
+
+  // HR
+  const hasHR = hrs.length > 10;
+  const avgHR  = hasHR ? Math.round(hrs.reduce((a,b)=>a+b,0)/hrs.length) : null;
+  const maxHRa = hasHR ? Math.max(...hrs) : null;
+  const minHRa = hasHR ? Math.min(...hrs) : null;
+  const mhr    = 220 - getRiderAge();
+  const z1 = hasHR ? hrs.filter(h=>h<mhr*0.60).length : 0;
+  const z2 = hasHR ? hrs.filter(h=>h>=mhr*0.60&&h<mhr*0.70).length : 0;
+  const z3 = hasHR ? hrs.filter(h=>h>=mhr*0.70&&h<mhr*0.80).length : 0;
+  const z4 = hasHR ? hrs.filter(h=>h>=mhr*0.80&&h<mhr*0.90).length : 0;
+  const z5 = hasHR ? hrs.filter(h=>h>=mhr*0.90).length : 0;
+  const htot = hrs.length||1;
+  const hrZones = [
+    {label:'Z1 Regeneration', pct:Math.round(z1/htot*100), color:'#B5D4F4', bpm:`< ${Math.round(mhr*0.60)} bpm`},
+    {label:'Z2 Fettverbrennung', pct:Math.round(z2/htot*100), color:'#1D9E75', bpm:`${Math.round(mhr*0.60)}–${Math.round(mhr*0.70)} bpm`},
+    {label:'Z3 Aerob', pct:Math.round(z3/htot*100), color:'#b57c00', bpm:`${Math.round(mhr*0.70)}–${Math.round(mhr*0.80)} bpm`},
+    {label:'Z4 Anaerob', pct:Math.round(z4/htot*100), color:'#E24B4A', bpm:`${Math.round(mhr*0.80)}–${Math.round(mhr*0.90)} bpm`},
+    {label:'Z5 Maximal', pct:Math.round(z5/htot*100), color:'#791F1F', bpm:`> ${Math.round(mhr*0.90)} bpm`},
+  ];
+  const dominantZone = hrZones.reduce((a,b)=>b.pct>a.pct?b:a, hrZones[0]);
+  const recoveryHours = hasHR ? (dominantZone.label.includes('Z5')||dominantZone.label.includes('Z4') ? 72 : dominantZone.label.includes('Z3') ? 48 : 24) : null;
+  const kcalHR = hasHR ? Math.round((0.6309*avgHR + 0.1988*RIDER.weight + 0.2017*getRiderAge() - 55.0969) * (duration/60) / 4.184) : Math.round(duration/60*9);
 
   return {
     totalDist, duration, movingSecs, avgSpeed, movingAvg, maxSpeed,
@@ -845,13 +851,24 @@ function renderDashboard(d) {
     {l:'Start',v:Math.round(d.startEle),u:'m'},
     {l:'Ziel',v:Math.round(d.endEle),u:'m'},
   ]);
-  // HR metrics
+  const kadMetrics = [
+    {l:'Ø Kadenz',v:Math.round(d.avgCad),u:'rpm',cls:'hi'},
+    {l:'Max. Kadenz',v:d.maxCad,u:'rpm'},
+  ];
+  if(d.avgTemp!==null) kadMetrics.push(
+    {l:'Ø Temperatur',v:d.avgTemp.toFixed(1),u:'°C'},
+    {l:'Min. Temp.',v:d.minTemp.toFixed(0),u:'°C'},
+    {l:'Max. Temp.',v:d.maxTemp.toFixed(0),u:'°C'},
+  );
+  setMetrics('metricsKadenz', kadMetrics);
+
+
+  // HR
+  const age = getRiderAge();
+  document.getElementById('analysisTitle').textContent = `Körperanalyse · ${age} J. · ${RIDER.weight} kg · ${RIDER.height} cm`;
   if(d.hasHR) {
+    document.getElementById('hrSection').style.display = 'block';
     const mhr = getRiderMaxHR();
-    document.getElementById('hrSectionLabel').style.display = 'block';
-    document.getElementById('hrZoneSection').style.display  = 'block';
-    document.getElementById('hrChartSection').style.display = 'block';
-    document.getElementById('analysisTitle').textContent = `Körperanalyse · ${getRiderAge()} J. · ${RIDER.weight} kg · ${RIDER.height} cm`;
     setMetrics('metricsHR',[
       {l:'Ø Herzfrequenz', v:d.avgHR, u:'bpm', cls:'red'},
       {l:'Max. HF', v:d.maxHRa, u:'bpm', cls:'red'},
@@ -860,26 +877,16 @@ function renderDashboard(d) {
       {l:'% Max. HF', v:Math.round(d.avgHR/mhr*100), u:'%', cls:'warn'},
       {l:'Kalorien', v:d.kcalHR, u:'kcal', cls:'hi'},
     ]);
-    // Zone bar
     const zoneBar = document.getElementById('zoneBar');
-    zoneBar.innerHTML = d.hrZones.map(z => z.pct>0 ? `<div style="flex:${z.pct};background:${z.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#fff;">${z.pct>5?z.pct+'%':''}</div>` : '').join('');
-  } else {
-    document.getElementById('analysisTitle').textContent = `Körperanalyse · ${getRiderAge()} J. · ${RIDER.weight} kg · ${RIDER.height} cm`;
+    zoneBar.innerHTML = d.hrZones.map(z => z.pct>0 ? `<div style="flex:${z.pct};background:${z.color};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:500;color:#fff;">${z.pct>6?z.pct+'%':''}</div>` : '').join('');
   }
-  if(d.avgTemp!==null) kadMetrics.push(
-    {l:'Ø Temperatur',v:d.avgTemp.toFixed(1),u:'°C'},
-    {l:'Min. Temp.',v:d.minTemp.toFixed(0),u:'°C'},
-    {l:'Max. Temp.',v:d.maxTemp.toFixed(0),u:'°C'},
-  );
-  setMetrics('metricsKadenz', kadMetrics);
 
   // Charts
   charts.forEach(c=>c.destroy()); charts=[];
   renderElevChart(d);
-  if(d.hasHR) renderHRChart(d);
+  if(d.hasHR) { renderHRChart(d); renderHRZoneChart(d); }
   renderCadChart(d);
   renderCadDist(d);
-  if(d.hasHR) renderHRZoneChart(d);
 
   // Perf bars
   const perf = calcPerf(d);
@@ -966,6 +973,7 @@ function renderCadDist(d) {
   }));
 }
 
+
 function renderHRChart(d) {
   const labels = d.elevPts.map(p=>p.x.toFixed(1));
   const eVals  = d.elevPts.map(p=>Math.round(p.y));
@@ -983,7 +991,7 @@ function renderHRChart(d) {
       scales:{
         x:{ticks:{color:txtC,font:{size:10},maxTicksLimit:9,callback:v=>v+' km'},grid:{color:gridC},border:{display:false}},
         y:{min:Math.max(0,Math.round(Math.min(...eVals)-50)),ticks:{color:'#1D9E75',font:{size:10},callback:v=>v+' m'},grid:{color:gridC},border:{display:false}},
-        y2:{position:'right',min:50,max:Math.min(mhr+10,200),ticks:{color:'#E24B4A',font:{size:10},callback:v=>v+' bpm'},grid:{display:false},border:{display:false}}
+        y2:{position:'right',min:50,max:Math.min(mhr+15,210),ticks:{color:'#E24B4A',font:{size:10},callback:v=>v+' bpm'},grid:{display:false},border:{display:false}}
       }}
   }));
 }
@@ -1040,44 +1048,35 @@ function buildAnalysis(d) {
   const maxHR = getRiderMaxHR();
   const snackKm = Math.round(d.totalDist*0.55);
   const cards=[];
-
   if(d.uphill>300) cards.push({badge:'Sehr gut',cls:'good',title:'Bergausdauer:',
     text:`${Math.round(d.uphill)} Hm bewältigt — für ${age} Jahre und ${RIDER.weight} kg eine starke Leistung. Leichteres Körpergewicht ist bergauf ein klarer Vorteil.`});
-
   if(d.hasHR) {
-    const pctMax = Math.round(d.avgHR/maxHR*100);
-    const z45pct = (d.hrZones[3].pct||0) + (d.hrZones[4].pct||0);
-    const z23pct = (d.hrZones[1].pct||0) + (d.hrZones[2].pct||0);
-    if(z45pct > 50) cards.push({badge:'Hohe Belastung',cls:'red',title:'Zone 4/5 dominant:',
-      text:`${z45pct}% der Tour in Zone 4/5 (${Math.round(maxHR*0.80)}+ bpm). Für E-Bike sehr intensiv — Motor-Unterstützung erhöhen um in Zone 3 (${Math.round(maxHR*0.70)}–${Math.round(maxHR*0.80)} bpm) zu bleiben. Das schont Herz und Gelenke.`});
-    else if(z23pct > 50) cards.push({badge:'Optimal',cls:'good',title:'Ideale Herzfrequenz-Zone:',
-      text:`${z23pct}% der Tour in Zone 2/3 — perfekter Ausdauerbereich. Der Körper verbrennt effizient Fett und baut Grundlagenausdauer auf.`});
-
-    const recovDays = d.recoveryHours >= 72 ? '2–3 Tage' : d.recoveryHours >= 48 ? '1–2 Tage' : '1 Tag';
+    const pct = Math.round(d.avgHR/maxHR*100);
+    const z45 = (d.hrZones[3].pct||0)+(d.hrZones[4].pct||0);
+    const z23 = (d.hrZones[1].pct||0)+(d.hrZones[2].pct||0);
+    if(z45>50) cards.push({badge:'Hohe Belastung',cls:'red',title:'Zone 4/5 dominant:',
+      text:`${z45}% der Tour in Zone 4/5 (ab ${Math.round(maxHR*0.80)} bpm). Für E-Bike sehr intensiv — Unterstützungsstufe erhöhen um Ziel-Zone 3 (${Math.round(maxHR*0.70)}–${Math.round(maxHR*0.80)} bpm) zu erreichen.`});
+    else if(z23>50) cards.push({badge:'Optimal',cls:'good',title:'Ideale HF-Zone:',
+      text:`${z23}% der Tour in Zone 2/3 — perfekter Ausdauerbereich für Fettverbrennung und Grundlagenausdauer.`});
+    const recovDays = d.recoveryHours>=72 ? '2–3 Tage' : d.recoveryHours>=48 ? '1–2 Tage' : '1 Tag';
     cards.push({badge:'Erholung',cls:'warn',title:`Erholungszeit: ${recovDays}:`,
-      text:`Dominante Zone: ${d.dominantZone.label}. Bei ${age} Jahren empfehlen Sportmediziner nach dieser Belastung ${recovDays} vor der nächsten intensiven Tour. Leichte Ausfahrten (Zone 1–2) sind früher möglich.`});
-
+      text:`Dominante Zone: ${d.dominantZone.label}. Bei ${age} Jahren ${recovDays} vor der nächsten intensiven Tour. Leichte Zone-1/2-Ausfahrten früher möglich.`});
     cards.push({badge:'Kalorien',cls:'info',title:`${d.kcalHR} kcal verbrannt:`,
-      text:`Berechnet aus Herzfrequenz, Alter und Gewicht (Karvonen-Formel). Für Touren über 90 min Snack ab km ${snackKm} empfohlen — Banane, Riegel oder Gel.`});
+      text:`Aus Herzfrequenz, Alter und Gewicht berechnet (Karvonen-Formel). Für Touren über 90 min Snack ab km ${snackKm} empfohlen.`});
   } else {
     cards.push({badge:'Tipp',cls:'warn',title:'Herzfrequenz:',
-      text:`Theoretische Max-HF von ${RIDER.name}: ${maxHR} bpm. Mit Pulsmesser werden Herzfrequenzzonen und Erholungsempfehlungen sichtbar. Geschätzter Kalorienverbrauch: ${Math.round(d.duration/60*9)} kcal.`});
+      text:`Theoretische Max-HF: ${maxHR} bpm. Mit Pulsmesser werden HF-Zonen, Erholung und exakter Kalorienverbrauch sichtbar. Geschätzt: ${Math.round(d.duration/60*9)} kcal.`});
   }
-
   if(d.avgCad>=70&&d.avgCad<=85) cards.push({badge:'Gut',cls:'good',title:'Kadenz im Zielbereich:',
-    text:`${Math.round(d.avgCad)} rpm Ø liegt im optimalen Bereich (70–85 rpm). Der Motor unterstützt bei dieser Kadenz am effizientesten.`});
+    text:`${Math.round(d.avgCad)} rpm Ø — optimaler Bereich (70–85 rpm). Motor unterstützt bei dieser Kadenz am effizientesten.`});
   else if(d.avgCad>0) cards.push({badge:'Potenzial',cls:'warn',title:'Kadenz optimierbar:',
-    text:`${Math.round(d.avgCad)} rpm Ø — Zielbereich für E-Bike und Gelenksschonung bei ${age} Jahren ist 75–85 rpm. Höhere Kadenz schont Knie und verlängert Akkulaufzeit.`});
-
+    text:`${Math.round(d.avgCad)} rpm Ø — Zielbereich 75–85 rpm schont Knie und verlängert Akkulaufzeit.`});
   if(d.maxSpeed>35) cards.push({badge:'Stark',cls:'good',title:'Fahrsicherheit bergab:',
-    text:`Max. ${d.maxSpeed.toFixed(1)} km/h im Abstieg zeigt gutes Vertrauen in Bike und Gelände.`});
-
+    text:`Max. ${d.maxSpeed.toFixed(1)} km/h im Abstieg — gutes Vertrauen in Bike und Gelände.`});
   if(d.avgTemp!==null) cards.push({badge:'Info',cls:'info',title:'Bedingungen:',
-    text:`Ø ${d.avgTemp.toFixed(1)} °C (${d.minTemp.toFixed(0)}–${d.maxTemp.toFixed(0)} °C). ${d.avgTemp>25?'Bei Hitze ausreichend trinken — mind. 500ml/h.':'Unter 10 °C Muskelaufwärmung verlängern.'}`});
-
+    text:`Ø ${d.avgTemp.toFixed(1)} °C (${d.minTemp.toFixed(0)}–${d.maxTemp.toFixed(0)} °C). ${d.avgTemp>25?'Bei Hitze mind. 500ml/h trinken.':'Unter 10 °C Aufwärmphase verlängern.'}`});
   cards.push({badge:'Körperprofil',cls:'info',title:`BMI ${bmi}:`,
-    text:`Optimaler Bereich (18,5–25). Körpergewicht ${RIDER.weight} kg bei ${RIDER.height} cm ist für Bergtouren ideal.`});
-
+    text:`Optimaler Bereich. ${RIDER.weight} kg bei ${RIDER.height} cm ist für Bergtouren ideal.`});
   return cards;
 }
 </script>
