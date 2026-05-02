@@ -774,15 +774,6 @@ function parseGPX(xml) {
   const maxEle = eles.length ? Math.max(...eles) : 0;
   const minEle = eles.length ? Math.min(...eles) : 0;
 
-  // Downsample to 80 points
-  function sample(arr, n=80) {
-    if(!arr.length) return [];
-    const step = Math.max(1, Math.floor(arr.length/n));
-    const out=[];
-    for(let i=0;i<arr.length;i+=step) out.push(arr[i]);
-    return out;
-  }
-
   // Build cum dist arrays
   const cumDists=[0];
   for(let i=1;i<dists.length;i++) cumDists.push(cumDists[i-1]+dists[i]/1000);
@@ -1014,6 +1005,8 @@ function renderHRZoneChart(d) {
       }}
   }));
 }
+
+function calcScore(d) {
   let s=60;
   if(d.uphill>400) s+=8;
   if(d.uphill>600) s+=4;
